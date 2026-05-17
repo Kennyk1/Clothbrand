@@ -42,13 +42,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Body text uses Inter — readable, not monospace */
 p, li, .vision-body p, .why-card p, .problem-card p, .mode-desc, .case-desc, .hero-tagline {
   font-family: var(--sans);
   font-weight: 400;
 }
 
-/* Mono only for code, labels, meta */
 code, pre, .meta-value, .meta-label, .section-label, .node-lbl, .node-sub,
 .branch-tag, .case-tag, .mode-tag, .badge, .conditions-box, .code-block {
   font-family: var(--mono);
@@ -76,7 +74,6 @@ section { padding: 64px 20px; border-bottom: 1px solid var(--border); }
   max-width: 680px;
 }
 
-/* Gold gradient on key words — same trick Protege uses for "Protege" */
 .section-title .g {
   background: linear-gradient(90deg, var(--gold), var(--gold-light));
   -webkit-background-clip: text;
@@ -84,7 +81,6 @@ section { padding: 64px 20px; border-bottom: 1px solid var(--border); }
   background-clip: text;
 }
 
-/* ── HERO ── */
 .hero {
   display: flex;
   flex-direction: column;
@@ -193,7 +189,6 @@ section { padding: 64px 20px; border-bottom: 1px solid var(--border); }
   color: var(--gold-light);
 }
 
-/* ── PROBLEM ── */
 .problem-grid {
   display: flex;
   flex-direction: column;
@@ -245,7 +240,6 @@ section { padding: 64px 20px; border-bottom: 1px solid var(--border); }
   max-width: 340px;
 }
 
-/* ── FLOW ── */
 .flow-wrap {
   display: flex;
   flex-direction: column;
@@ -381,7 +375,6 @@ section { padding: 64px 20px; border-bottom: 1px solid var(--border); }
 
 .branch-line { width: 2px; height: 28px; background: var(--gold); }
 
-/* ── CODE ── */
 .code-block {
   background: #0d0d0d;
   border: 1px solid var(--border);
@@ -423,7 +416,6 @@ section { padding: 64px 20px; border-bottom: 1px solid var(--border); }
 .cm { color: #3a3f47; font-style: italic; }
 .jt { color: var(--green); }
 
-/* ── WHY ── */
 .why-grid {
   display: flex;
   flex-direction: column;
@@ -462,7 +454,6 @@ section { padding: 64px 20px; border-bottom: 1px solid var(--border); }
 
 .why-card p { font-size: 13px; line-height: 1.8; color: var(--muted); max-width: 320px; }
 
-/* ── VS ETHEREUM ── */
 .vs-grid {
   display: flex;
   flex-direction: column;
@@ -517,7 +508,6 @@ section { padding: 64px 20px; border-bottom: 1px solid var(--border); }
   letter-spacing: 0.05em;
 }
 
-/* ── VISION ── */
 .vision-intro {
   font-family: var(--sans);
   font-size: 14px;
@@ -550,7 +540,6 @@ section { padding: 64px 20px; border-bottom: 1px solid var(--border); }
 .vision-body h3 { font-family: var(--display); font-size: 18px; font-weight: 800; letter-spacing: -0.04em; line-height: 0.92; margin-bottom: 8px; }
 .vision-body p  { font-size: 13px; line-height: 1.75; color: var(--muted); max-width: 320px; }
 
-/* ── MODES ── */
 .mode-grid {
   display: flex;
   flex-direction: column;
@@ -594,7 +583,6 @@ section { padding: 64px 20px; border-bottom: 1px solid var(--border); }
 
 .mode-arrow { color: var(--gold); font-size: 11px; opacity: 0.45; }
 
-/* ── USE CASES ── */
 .cases-list {
   display: flex;
   flex-direction: column;
@@ -620,7 +608,6 @@ section { padding: 64px 20px; border-bottom: 1px solid var(--border); }
 .case-desc  { font-size: 12px; color: var(--muted); line-height: 1.6; }
 .case-tag   { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); border: 1px solid rgba(201,168,76,0.2); padding: 3px 8px; border-radius: 2px; white-space: nowrap; flex-shrink: 0; }
 
-/* ── ROADMAP ── */
 .roadmap-phase { margin-bottom: 32px; }
 .roadmap-phase-title {
   font-family: var(--mono);
@@ -655,7 +642,6 @@ section { padding: 64px 20px; border-bottom: 1px solid var(--border); }
 .roadmap-text { font-size: 13px; color: var(--muted); line-height: 1.6; }
 .roadmap-text strong { font-family: var(--display); font-size: 13px; color: var(--white); font-weight: 600; display: block; margin-bottom: 2px; }
 
-/* ── FOOTER ── */
 footer { padding: 52px 20px; display: flex; flex-direction: column; gap: 28px; border-top: 1px solid var(--border); }
 .footer-name { font-family: var(--display); font-size: 26px; font-weight: 800; color: var(--gold); margin-bottom: 6px; }
 footer p { font-size: 13px; color: var(--muted); line-height: 1.75; }
@@ -670,12 +656,10 @@ footer a:hover { opacity: 1; }
 .footer-quote p { font-style: italic; font-size: 12px; color: rgba(240,236,227,0.3); }
 .footer-quote cite { font-family: var(--mono); font-size: 10px; color: rgba(201,168,76,0.4); display: block; margin-top: 6px; font-style: normal; }
 
-/* ── ANIMATIONS ── */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
 .reveal { opacity: 0; transform: translateY(14px); transition: opacity 0.55s ease, transform 0.55s ease; }
 .reveal.visible { opacity: 1; transform: translateY(0); }
 
-/* ── MOBILE OVERFLOW FIX ── */
 @media (max-width: 480px) {
   .hero-title { font-size: 64px; line-height: 0.88; letter-spacing: -0.06em; }
   .hero-tagline { max-width: 100%; }
@@ -683,7 +667,6 @@ footer a:hover { opacity: 1; }
   .wrap, section, .hero { min-width: 0; }
 }
 
-/* ── DESKTOP ── */
 @media (min-width: 768px) {
   section { padding: 80px 56px; }
   footer  { padding: 64px 56px; flex-direction: row; justify-content: space-between; align-items: flex-end; }
@@ -697,7 +680,6 @@ footer a:hover { opacity: 1; }
 </head>
 <body>
 
-<!-- HERO -->
 <section class="hero">
   <div class="badge"><span class="badge-dot"></span>Blockstream Turin Simplicity Hackathon · 2026</div>
   <h1 class="hero-title">Duo<span>Pay</span></h1>
@@ -711,7 +693,6 @@ footer a:hover { opacity: 1; }
   </div>
 </section>
 
-<!-- PROBLEM -->
 <section>
   <p class="section-label">01 — The Problem</p>
   <h2 class="section-title">Two people.<br>One purchase.<br><span class="g">No safe way to pay.</span></h2>
@@ -734,7 +715,6 @@ footer a:hover { opacity: 1; }
   </div>
 </section>
 
-<!-- FLOW -->
 <section>
   <p class="section-label">02 — How It Works</p>
   <h2 class="section-title">The DuoPay<br><span class="g">contract flow</span></h2>
@@ -788,7 +768,6 @@ footer a:hover { opacity: 1; }
   </div>
 </section>
 
-<!-- CODE -->
 <section style="background:#080808">
   <p class="section-label">03 — The Contract</p>
   <h2 class="section-title">duopay.simf</h2>
@@ -849,7 +828,6 @@ footer a:hover { opacity: 1; }
   </p>
 </section>
 
-<!-- WHY SIMPLICITY -->
 <section>
   <p class="section-label">04 — Why Simplicity</p>
   <h2 class="section-title">Not just any chain.<br><span class="g">Specifically this one.</span></h2>
@@ -876,7 +854,6 @@ footer a:hover { opacity: 1; }
     </div>
   </div>
 
-  <!-- VS Ethereum -->
   <h3 style="font-family:var(--display);font-size:18px;font-weight:700;margin:48px 0 20px;color:rgba(240,236,227,0.6)">Why not Ethereum / Solidity?</h3>
   <div class="vs-grid">
     <div class="vs-topic reveal">Reentrancy Attacks</div>
@@ -915,7 +892,6 @@ footer a:hover { opacity: 1; }
   </div>
 </section>
 
-<!-- VISION -->
 <section style="background:var(--surface)">
   <p class="section-label">05 — The Vision</p>
   <h2 class="section-title">This is just<br><span class="g">the beginning.</span></h2>
@@ -965,7 +941,6 @@ footer a:hover { opacity: 1; }
   </div>
 </section>
 
-<!-- USE CASES -->
 <section>
   <p class="section-label">06 — Who Needs This</p>
   <h2 class="section-title">Real people.<br><span class="g">Real problems.</span></h2>
@@ -1003,7 +978,6 @@ footer a:hover { opacity: 1; }
   </div>
 </section>
 
-<!-- ROADMAP -->
 <section style="background:var(--surface)">
   <p class="section-label">07 — Roadmap</p>
   <h2 class="section-title">What's built.<br><span class="g">What's next.</span></h2>
@@ -1053,7 +1027,6 @@ footer a:hover { opacity: 1; }
   </div>
 </section>
 
-<!-- FOOTER -->
 <footer>
   <div>
     <div class="footer-name">DuoPay</div>
