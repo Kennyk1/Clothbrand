@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DuoPay — Trustless Co-Buyer Escrow on Liquid</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 15px; scroll-behavior: smooth; }
+
+:root {
+  --black:      #0a0a0a;
+  --surface:    #161616;
+  --surface2:   #1e1e1e;
+  --surface3:   #252525;
+  --border:     #242424;
+  --border2:    #2e2e2e;
+  --white:      #f0ece3;
+  --muted:      #5a5a5a;
+  --gold:       #c9a84c;
+  --gold-light: #e8c97a;
+  --gold-dim:   rgba(201,168,76,0.1);
+  --green:      #3ddc84;
+  --red:        #ff5f5f;
+  --font:       'DM Mono', monospace;
+  --display:    'Syne', sans-serif;
+}
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: var(--font);
+  overflow-x: hidden;
+}
+
+section {
+  padding: 64px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-family: var(--display);
+  font-size: clamp(28px, 8vw, 52px);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin-bottom: 36px;
+}
+
+/* ── HERO ── */
+.hero {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 72px 20px 60px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  top: -100px; right: -100px;
+  width: 360px; height: 360px;
+  background: radial-gradient(circle, rgba(201,168,76,0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--gold-dim);
+  border: 1px solid rgba(201,168,76,0.25);
+  color: var(--gold-light);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 2px;
+  margin-bottom: 32px;
+  width: fit-content;
+  animation: fadeUp 0.5s ease both;
+}
+
+.badge-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--gold);
+  animation: blink 2s infinite;
+  flex-shrink: 0;
+}
+
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+.hero-title {
+  font-family: var(--display);
+  font-size: clamp(72px, 20vw, 120px);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  margin-bottom: 8px;
+  animation: fadeUp 0.5s 0.08s ease both;
+}
+
+.hero-title span { color: var(--gold); }
+
+.hero-sub {
+  font-family: var(--display);
+  font-size: clamp(13px, 3.5vw, 18px);
+  font-weight: 400;
+  color: var(--muted);
+  margin-bottom: 36px;
+  animation: fadeUp 0.5s 0.15s ease both;
+}
+
+.hero-tagline {
+  font-size: 12px;
+  line-height: 1.9;
+  color: rgba(240,236,227,0.6);
+  max-width: 440px;
+  border-left: 2px solid var(--gold);
+  padding-left: 16px;
+  animation: fadeUp 0.5s 0.22s ease both;
+}
+
+.hero-meta {
+  margin-top: 48px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  animation: fadeUp 0.5s 0.3s ease both;
+}
+
+.meta-item { display: flex; flex-direction: column; gap: 4px; }
+
+.meta-label {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.meta-value {
+  font-family: var(--display);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold-light);
+}
+
+/* ── PROBLEM ── */
+.problem-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.problem-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 24px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+
+.problem-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--red);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s;
+}
+
+.problem-card:hover::before { transform: scaleX(1); }
+
+.problem-icon {
+  width: 32px; height: 32px;
+  color: var(--red);
+  opacity: 0.75;
+  margin-bottom: 14px;
+}
+
+.problem-card h3 {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 7px;
+}
+
+.problem-card p {
+  font-size: 12px;
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* ── FLOW ── */
+.flow-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 36px;
+}
+
+.flow-buyers {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 380px;
+}
+
+.flow-node {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  padding: 16px 12px;
+  text-align: center;
+  flex: 1;
+  transition: border-color 0.2s;
+}
+
+.flow-node:hover { border-color: var(--gold); }
+.flow-node.buyer { border-top: 2px solid var(--gold); }
+
+.flow-node.contract {
+  border: 2px solid var(--gold);
+  background: rgba(201,168,76,0.03);
+  width: 100%;
+  max-width: 380px;
+  padding: 22px 18px;
+}
+
+.flow-node.good { border-top: 2px solid var(--green); flex: 1; }
+.flow-node.bad  { border-top: 2px solid var(--red);   flex: 1; }
+
+.node-icon { margin-bottom: 8px; display: flex; justify-content: center; }
+.node-lbl  { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.node-name { font-family: var(--display); font-size: 13px; font-weight: 700; }
+.node-sub  { font-size: 10px; color: var(--gold); margin-top: 4px; }
+
+/* Merge connector */
+.flow-merge {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  height: 40px;
+}
+
+.flow-merge::before,
+.flow-merge::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 2px;
+  height: 40px;
+  background: var(--gold);
+}
+
+.flow-merge::before { left: calc(25% - 1px); }
+.flow-merge::after  { right: calc(25% - 1px); }
+
+.merge-h {
+  position: absolute;
+  top: 39px;
+  left: calc(25% - 1px);
+  right: calc(25% - 1px);
+  height: 2px;
+  background: var(--gold);
+}
+
+.merge-v {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 20px;
+  background: var(--gold);
+}
+
+.flow-line {
+  width: 2px;
+  height: 32px;
+  background: var(--gold);
+}
+
+.conditions-box {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--gold);
+  padding: 16px 18px;
+  margin: 20px 0;
+  font-size: 11px;
+  line-height: 1.9;
+  color: var(--muted);
+  width: 100%;
+  max-width: 380px;
+}
+
+.conditions-box strong { color: var(--gold-light); font-family: var(--display); }
+
+.flow-branch-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+}
+
+.branch-h {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold);
+}
+
+.flow-branch {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.branch-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.branch-tag {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+.branch-tag.yes { background: rgba(61,220,132,0.08); color: var(--green); border: 1px solid rgba(61,220,132,0.2); }
+.branch-tag.no  { background: rgba(255,95,95,0.08); color: var(--red); border: 1px solid rgba(255,95,95,0.2); }
+
+.branch-line { width: 2px; height: 28px; background: var(--gold); }
+
+/* ── CODE ── */
+.code-block {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--gold);
+  padding: 20px 16px;
+  font-size: 11px;
+  line-height: 1.85;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+.code-block::before {
+  content: 'SimplicityHL';
+  position: absolute;
+  top: 9px; right: 12px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold);
+  opacity: 0.45;
+}
+
+.kw { color: #ff7b72; }
+.fn { color: #79c0ff; }
+.tp { color: var(--gold-light); }
+.pm { color: #ffa657; }
+.cm { color: #363c45; font-style: italic; }
+
+/* ── WHY ── */
+.why-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 36px;
+}
+
+.why-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 24px 20px;
+  transition: background 0.2s;
+}
+
+.why-card:hover { background: var(--surface2); }
+
+.why-num {
+  font-family: var(--display);
+  font-size: 40px;
+  font-weight: 800;
+  -webkit-text-stroke: 1px rgba(201,168,76,0.2);
+  color: transparent;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.why-card h3 {
+  font-family: var(--display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold-light);
+  margin-bottom: 7px;
+}
+
+.why-card p { font-size: 12px; line-height: 1.8; color: var(--muted); }
+
+/* ── VISION ── */
+.vision-intro {
+  font-size: 12px;
+  line-height: 1.9;
+  color: rgba(240,236,227,0.55);
+  max-width: 520px;
+  margin-bottom: 36px;
+}
+
+.vision-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.vision-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 22px 18px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: border-color 0.2s;
+}
+
+.vision-card:hover { border-color: var(--border2); }
+
+.vision-icon { width: 32px; height: 32px; flex-shrink: 0; color: var(--gold); opacity: 0.7; }
+
+.vision-body h3 { font-family: var(--display); font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.vision-body p  { font-size: 12px; line-height: 1.75; color: var(--muted); }
+
+.mode-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 28px;
+}
+
+.mode-card {
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  padding: 20px 18px;
+}
+
+.mode-tag  { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--gold); margin-bottom: 7px; }
+.mode-name { font-family: var(--display); font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+.mode-desc { font-size: 12px; line-height: 1.75; color: var(--muted); }
+
+.mode-flow {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.mode-step {
+  font-size: 10px;
+  background: var(--surface3);
+  border: 1px solid var(--border2);
+  padding: 3px 9px;
+  border-radius: 2px;
+  color: var(--white);
+  opacity: 0.65;
+}
+
+.mode-arrow { color: var(--gold); font-size: 11px; opacity: 0.45; }
+
+/* ── USE CASES ── */
+.cases-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 36px;
+}
+
+.case-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 16px 18px;
+  transition: padding-left 0.2s, border-color 0.2s;
+}
+
+.case-row:hover { padding-left: 26px; border-color: var(--border2); }
+
+.case-icon { flex-shrink: 0; color: var(--gold); opacity: 0.65; }
+.case-text { flex: 1; min-width: 0; }
+.case-title { font-family: var(--display); font-size: 13px; font-weight: 700; margin-bottom: 3px; }
+.case-desc  { font-size: 11px; color: var(--muted); line-height: 1.6; }
+.case-tag   {
+  font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--gold); border: 1px solid rgba(201,168,76,0.2);
+  padding: 3px 8px; border-radius: 2px; white-space: nowrap; flex-shrink: 0;
+}
+
+/* ── FOOTER ── */
+footer {
+  padding: 52px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.footer-name {
+  font-family: var(--display);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--gold);
+  margin-bottom: 6px;
+}
+
+footer p { font-size: 12px; color: var(--muted); line-height: 1.75; }
+footer a  { color: var(--gold); text-decoration: none; display: block; font-size: 12px; line-height: 2; }
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.55s ease, transform 0.55s ease;
+}
+
+.reveal.visible { opacity: 1; transform: translateY(0); }
+
+/* ── DESKTOP UPGRADES ── */
+@media (min-width: 768px) {
+  section { padding: 80px 48px; }
+  footer  { padding: 64px 48px; flex-direction: row; justify-content: space-between; align-items: flex-end; }
+
+  .problem-grid { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .why-grid     { display: grid; grid-template-columns: 1fr 1fr; }
+  .vision-grid  { display: grid; grid-template-columns: 1fr 1fr; }
+  .mode-grid    { display: grid; grid-template-columns: 1fr 1fr; }
+
+  .flow-buyers         { max-width: 480px; }
+  .flow-merge          { max-width: 480px; }
+  .flow-node.contract  { max-width: 480px; }
+  .conditions-box      { max-width: 480px; }
+  .flow-branch-wrap    { max-width: 480px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="badge">
+    <span class="badge-dot"></span>
+    Blockstream Turin Simplicity Hackathon · 2026
+  </div>
+  <h1 class="hero-title">Duo<span>Pay</span></h1>
+  <p class="hero-sub">Trustless Co-Buyer Escrow on Liquid Network</p>
+  <p class="hero-tagline">
+    Two buyers. One seller. Zero middlemen.<br>
+    A SimplicityHL smart contract that holds funds until both parties confirm — then releases automatically. No trust required.
+  </p>
+  <div class="hero-meta">
+    <div class="meta-item"><span class="meta-label">Network</span><span class="meta-value">Liquid Testnet</span></div>
+    <div class="meta-item"><span class="meta-label">Language</span><span class="meta-value">SimplicityHL</span></div>
+    <div class="meta-item"><span class="meta-label">Pattern</span><span class="meta-value">2-of-2 Escrow</span></div>
+    <div class="meta-item"><span class="meta-label">Category</span><span class="meta-value">Financial Tool</span></div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section>
+  <p class="section-label">01 — The Problem</p>
+  <h2 class="section-title">Two people.<br>One purchase.<br>No safe way to pay.</h2>
+  <div class="problem-grid">
+
+    <div class="problem-card reveal">
+      <svg class="problem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/>
+      </svg>
+      <h3>Buyer A goes first</h3>
+      <p>Sends their share, then waits. If Buyer B or the seller disappears — the money is gone. No recourse.</p>
+    </div>
+
+    <div class="problem-card reveal">
+      <svg class="problem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <h3>Buyer B goes first</h3>
+      <p>Same problem, reversed. Someone always absorbs all the risk. A trust deadlock with no exit.</p>
+    </div>
+
+    <div class="problem-card reveal">
+      <svg class="problem-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      </svg>
+      <h3>Use a middleman</h3>
+      <p>Escrow services charge fees, require identity checks, and add a third party you still have to trust.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- FLOW -->
+<section>
+  <p class="section-label">02 — How It Works</p>
+  <h2 class="section-title">The DuoPay<br>contract flow</h2>
+
+  <div class="flow-wrap">
+
+    <div class="flow-buyers reveal">
+      <div class="flow-node buyer">
+        <div class="node-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <div class="node-lbl">Co-Buyer A</div>
+        <div class="node-name">Alice</div>
+        <div class="node-sub">Deposits share</div>
+      </div>
+      <div class="flow-node buyer">
+        <div class="node-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
+        <div class="node-lbl">Co-Buyer B</div>
+        <div class="node-name">Bob</div>
+        <div class="node-sub">Deposits share</div>
+      </div>
+    </div>
+
+    <div class="flow-merge reveal">
+      <div class="merge-h"></div>
+      <div class="merge-v"></div>
+    </div>
+
+    <div class="flow-node contract reveal">
+      <div class="node-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.5">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+      </div>
+      <div class="node-lbl">SimplicityHL Contract</div>
+      <div class="node-name">DuoPay Escrow</div>
+      <div class="node-sub" style="font-size:9px;opacity:0.55;margin-top:5px;">Funds locked on Liquid Network</div>
+    </div>
+
+    <div class="conditions-box reveal">
+      <strong>RELEASE PATH</strong> — Both Alice + Bob sign confirmation → funds sent to Seller<br>
+      <strong>REFUND PATH&nbsp;&nbsp;</strong> — Block height passes timeout → each buyer reclaims deposit
+    </div>
+
+    <div class="flow-branch-wrap reveal">
+      <div class="branch-h"></div>
+      <div class="flow-branch">
+        <div class="branch-col">
+          <div class="branch-tag yes">✓ Both confirm</div>
+          <div class="branch-line"></div>
+          <div class="flow-node good" style="width:100%">
+            <div class="node-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            </div>
+            <div class="node-lbl">Outcome A</div>
+            <div class="node-name">Seller Paid</div>
+            <div class="node-sub" style="color:var(--green)">Full amount released</div>
+          </div>
+        </div>
+        <div class="branch-col">
+          <div class="branch-tag no">⏱ Timeout</div>
+          <div class="branch-line"></div>
+          <div class="flow-node bad" style="width:100%">
+            <div class="node-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </div>
+            <div class="node-lbl">Outcome B</div>
+            <div class="node-name">Both Refunded</div>
+            <div class="node-sub" style="color:var(--red)">Deposits returned</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- CODE -->
+<section style="background:#080808">
+  <p class="section-label">03 — Contract Design</p>
+  <h2 class="section-title">The logic,<br>in SimplicityHL</h2>
+  <div class="code-block reveal">
+<pre><span class="cm">// DuoPay — Joint Purchase Escrow
+// Seller paid only when BOTH buyers confirm.</span>
+
+<span class="kw">contract</span> <span class="fn">DuoPay</span> {
+  <span class="cm">// ── Parties ────────────────────────</span>
+  <span class="kw">param</span> <span class="pm">buyer_a_pubkey</span>: <span class="tp">PubKey</span>,
+  <span class="kw">param</span> <span class="pm">buyer_b_pubkey</span>: <span class="tp">PubKey</span>,
+  <span class="kw">param</span> <span class="pm">seller_pubkey</span>:  <span class="tp">PubKey</span>,
+
+  <span class="cm">// ── Amounts (L-BTC satoshis) ────────</span>
+  <span class="kw">param</span> <span class="pm">buyer_a_amount</span>: <span class="tp">u64</span>,
+  <span class="kw">param</span> <span class="pm">buyer_b_amount</span>: <span class="tp">u64</span>,
+  <span class="kw">param</span> <span class="pm">timeout_height</span>: <span class="tp">u32</span>,
+
+  <span class="cm">// SPEND PATH 1: Both confirm → pay seller</span>
+  <span class="kw">fn</span> <span class="fn">release</span>(<span class="pm">sig_a</span>: <span class="tp">Sig</span>, <span class="pm">sig_b</span>: <span class="tp">Sig</span>) -> <span class="tp">bool</span> {
+    <span class="fn">verify_sig</span>(<span class="pm">buyer_a_pubkey</span>, <span class="pm">sig_a</span>) &&
+    <span class="fn">verify_sig</span>(<span class="pm">buyer_b_pubkey</span>, <span class="pm">sig_b</span>) &&
+    <span class="fn">output_value</span>(0) == <span class="pm">buyer_a_amount</span> + <span class="pm">buyer_b_amount</span> &&
+    <span class="fn">output_pubkey</span>(0) == <span class="pm">seller_pubkey</span>
+  }
+
+  <span class="cm">// SPEND PATH 2: Timeout → refund both</span>
+  <span class="kw">fn</span> <span class="fn">refund</span>(<span class="pm">sig_a</span>: <span class="tp">Sig</span>, <span class="pm">sig_b</span>: <span class="tp">Sig</span>) -> <span class="tp">bool</span> {
+    <span class="fn">current_block_height</span>() >= <span class="pm">timeout_height</span> &&
+    <span class="fn">verify_sig</span>(<span class="pm">buyer_a_pubkey</span>, <span class="pm">sig_a</span>) &&
+    <span class="fn">verify_sig</span>(<span class="pm">buyer_b_pubkey</span>, <span class="pm">sig_b</span>) &&
+    <span class="fn">output_value</span>(0) == <span class="pm">buyer_a_amount</span> &&
+    <span class="fn">output_pubkey</span>(0) == <span class="pm">buyer_a_pubkey</span> &&
+    <span class="fn">output_value</span>(1) == <span class="pm">buyer_b_amount</span> &&
+    <span class="fn">output_pubkey</span>(1) == <span class="pm">buyer_b_pubkey</span>
+  }
+}</pre>
+  </div>
+</section>
+
+<!-- WHY SIMPLICITY -->
+<section>
+  <p class="section-label">04 — Why Simplicity</p>
+  <h2 class="section-title">Not just any chain.<br>Specifically this one.</h2>
+  <div class="why-grid">
+
+    <div class="why-card reveal">
+      <div class="why-num">01</div>
+      <h3>No Surprise Failures</h3>
+      <p>No loops, no unbounded recursion. Exactly two outcomes: release or refund. Both buyers verify this before depositing a single satoshi.</p>
+    </div>
+
+    <div class="why-card reveal">
+      <div class="why-num">02</div>
+      <h3>Formally Verifiable</h3>
+      <p>Both parties can prove no unauthorized spend path exists. The code IS the guarantee — not a company's promise or a terms of service.</p>
+    </div>
+
+    <div class="why-card reveal">
+      <div class="why-num">03</div>
+      <h3>UTXO = No Global Risk</h3>
+      <p>Each DuoPay contract is an isolated UTXO. Bugs in other contracts cannot touch yours. Reentrancy attacks are impossible by design.</p>
+    </div>
+
+    <div class="why-card reveal">
+      <div class="why-num">04</div>
+      <h3>Predictable Fees</h3>
+      <p>Statically bounded execution cost. Both buyers see the exact fee before locking funds. No gas estimation games, no surprises.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- VISION -->
+<section style="background:var(--surface)">
+  <p class="section-label">05 — The Vision</p>
+  <h2 class="section-title">This is just<br>the beginning.</h2>
+
+  <p class="vision-intro">
+    DuoPay is designed to become a full trustless payment platform — eliminating the security risks of WhatsApp, Telegram, and TikTok payments entirely. Every money transfer verified on-chain. Every deal sealed with code, not promises.
+  </p>
+
+  <div class="vision-grid">
+
+    <div class="vision-card reveal">
+      <svg class="vision-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+      </svg>
+      <div class="vision-body">
+        <h3>Deal Links</h3>
+        <p>Create a deal, share a link. The other party sees terms verified on-chain and deposits. No screenshots. No "trust me." The blockchain is the receipt.</p>
+      </div>
+    </div>
+
+    <div class="vision-card reveal">
+      <svg class="vision-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+      </svg>
+      <div class="vision-body">
+        <h3>Built-in Deal Chat</h3>
+        <p>Every deal has its own chat room. Text, voice, video, PDF, documents — all in one place. No WhatsApp needed to coordinate a payment.</p>
+      </div>
+    </div>
+
+    <div class="vision-card reveal">
+      <svg class="vision-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <path d="M3 9h18M9 21V9"/>
+      </svg>
+      <div class="vision-body">
+        <h3>Deal Dashboard</h3>
+        <p>Create, track, and manage deals in a clean interface. Deposit status verified in real time on-chain — no edited screenshots possible.</p>
+      </div>
+    </div>
+
+    <div class="vision-card reveal">
+      <svg class="vision-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+      </svg>
+      <div class="vision-body">
+        <h3>Trust Score</h3>
+        <p>Every completed deal builds your on-chain reputation. Not required — but it elevates users who consistently deliver. Trust earned, not claimed.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Two modes -->
+  <div class="mode-grid">
+
+    <div class="mode-card reveal">
+      <div class="mode-tag">Mode 1 — Co-Buy</div>
+      <div class="mode-name">Two buyers, one seller</div>
+      <div class="mode-desc">Friends splitting a purchase. Neither goes first. Both deposit, both confirm, seller gets paid.</div>
+      <div class="mode-flow">
+        <span class="mode-step">A deposits</span>
+        <span class="mode-arrow">→</span>
+        <span class="mode-step">B deposits</span>
+        <span class="mode-arrow">→</span>
+        <span class="mode-step">Both confirm</span>
+        <span class="mode-arrow">→</span>
+        <span class="mode-step">Seller paid</span>
+      </div>
+    </div>
+
+    <div class="mode-card reveal">
+      <div class="mode-tag">Mode 2 — Client / Freelancer</div>
+      <div class="mode-name">One client, one builder</div>
+      <div class="mode-desc">Client locks payment upfront. Freelancer delivers, submits proof. Client approves. No invoices ignored. No work stolen.</div>
+      <div class="mode-flow">
+        <span class="mode-step">Client deposits</span>
+        <span class="mode-arrow">→</span>
+        <span class="mode-step">Work delivered</span>
+        <span class="mode-arrow">→</span>
+        <span class="mode-step">Client approves</span>
+        <span class="mode-arrow">→</span>
+        <span class="mode-step">Builder paid</span>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- USE CASES -->
+<section>
+  <p class="section-label">06 — Who Needs This</p>
+  <h2 class="section-title">Real people.<br>Real problems.</h2>
+  <div class="cases-list">
+
+    <div class="case-row reveal">
+      <svg class="case-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <div class="case-text">
+        <div class="case-title">Friends splitting a big purchase</div>
+        <div class="case-desc">Laptop, TV, appliances — neither wants to go first.</div>
+      </div>
+      <div class="case-tag">Consumer</div>
+    </div>
+
+    <div class="case-row reveal">
+      <svg class="case-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+      </svg>
+      <div class="case-text">
+        <div class="case-title">Designers &amp; developers getting paid</div>
+        <div class="case-desc">Client locks funds before work starts. No ghosting. No unpaid invoices.</div>
+      </div>
+      <div class="case-tag">Freelance</div>
+    </div>
+
+    <div class="case-row reveal">
+      <svg class="case-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="1" y="3" width="15" height="13" rx="2"/>
+        <path d="M16 8h4l3 5v3h-7V8zM5.5 21a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3zm13 0a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3z"/>
+      </svg>
+      <div class="case-text">
+        <div class="case-title">Online marketplace co-buys</div>
+        <div class="case-desc">Two collectors buying rare items from an unknown seller.</div>
+      </div>
+      <div class="case-tag">E-commerce</div>
+    </div>
+
+    <div class="case-row reveal">
+      <svg class="case-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="2" y1="12" x2="22" y2="12"/>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      </svg>
+      <div class="case-text">
+        <div class="case-title">Cross-border purchases</div>
+        <div class="case-desc">Where traditional escrow doesn't operate or costs too much.</div>
+      </div>
+      <div class="case-tag">Global</div>
+    </div>
+
+    <div class="case-row reveal">
+      <svg class="case-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <line x1="12" y1="1" x2="12" y2="23"/>
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+      </svg>
+      <div class="case-text">
+        <div class="case-title">Liquid asset co-investment</div>
+        <div class="case-desc">Two investors jointly funding a tokenized asset on Liquid Network.</div>
+      </div>
+      <div class="case-tag">DeFi</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-name">DuoPay</div>
+    <p>Trustless co-buyer escrow on SimplicityHL and the Liquid Network.</p>
+    <p style="margin-top:6px;font-size:10px;opacity:0.4">Blockstream Turin Simplicity Hackathon · May 17, 2026</p>
+  </div>
+  <div>
+    <a href="https://docs.simplicity-lang.org">docs.simplicity-lang.org ↗</a>
+    <a href="https://github.com/BlockstreamResearch/simplicity-contracts">simplicity-contracts ↗</a>
+    <a href="https://liquid.net">liquid.net ↗</a>
+  </div>
+</footer>
+
+<script>
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.07 });
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
