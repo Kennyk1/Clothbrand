@@ -185,7 +185,7 @@ DuoPay is the **first co-buyer escrow design** built natively for Simplicity's U
 ## 👤 Submitted By
 
 Submitted to the **Blockstream Turin Simplicity Hackathon** — May 17, 2026  
-Built in a single session using only a mobile device 📱
+Conceived and submitted in a single focused session — from idea to documentation in under 7 hours.
 
 > *"The most important Simplicity applications are the ones that I haven't thought of."*  
 > — Russell O'Connor, creator of Simplicity
